@@ -4,11 +4,11 @@ import time
 
 from matplotlib import pyplot as plt
 
-os.environ['HF_DATASETS_CACHE'] = '/cs/labs/daphna/uri1234/ANLP/'
-os.environ['HF_METRICS_CACHE'] = '/cs/labs/daphna/uri1234/ANLP/'
-os.environ['HF_MODULES_CACHE'] = '/cs/labs/daphna/uri1234/ANLP/'
-os.environ['HF_DATASETS_DOWNLOADED_EVALUATE_PATH'] = '/cs/labs/daphna/uri1234/ANLP/'
-os.environ['TRANSFORMERS_CACHE'] = '/cs/labs/daphna/uri1234/ANLP/'
+os.environ['HF_DATASETS_CACHE'] = './'
+os.environ['HF_METRICS_CACHE'] = './'
+os.environ['HF_MODULES_CACHE'] = './'
+os.environ['HF_DATASETS_DOWNLOADED_EVALUATE_PATH'] = './'
+os.environ['TRANSFORMERS_CACHE'] = './'
 
 from transformers import Trainer, TrainingArguments
 from datasets import load_dataset, load_metric
@@ -56,14 +56,14 @@ for model_name in model_names:
     for seed in range(args.num_seeds):
         set_seed(seed)
         training_args = TrainingArguments(
-            output_dir="/cs/labs/daphna/uri1234/ANLP/EX1/"+model_name+str(seed)+"results",
+            output_dir="./"+model_name+str(seed)+"results",
         )
 
 
         # Step 4: Load model and tokenizer
-        config = AutoConfig.from_pretrained(model_name, cache_dir = "/cs/labs/daphna/uri1234/ANLP/")
-        tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir = "/cs/labs/daphna/uri1234/ANLP/")
-        all_models[-1].append(AutoModelForSequenceClassification.from_pretrained(model_name, config=config, cache_dir = "/cs/labs/daphna/uri1234/ANLP/").cuda())
+        config = AutoConfig.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        all_models[-1].append(AutoModelForSequenceClassification.from_pretrained(model_name, config=config).cuda())
         data_collator = DataCollatorWithPadding(tokenizer = tokenizer)
 
         def tokenize_function(example):
@@ -94,11 +94,11 @@ for model_name in model_names:
     mean_val_acc = np.mean(val_acc)
     std_val_acc = np.std(val_acc)
     mean_val_accs.append(mean_val_acc)
-    with open("/cs/labs/daphna/uri1234/ANLP/EX1/res.txt", 'a') as f:
+    with open("./res.txt", 'a') as f:
         f.write(model_name + "," + str(np.mean(val_acc)) + " +- "+ str(np.std(val_acc)) + '\n')
     f.close()
 end = time.time()
-with open("/cs/labs/daphna/uri1234/ANLP/EX1/res.txt", 'a') as f:
+with open("./res.txt", 'a') as f:
     f.write("----" + '\n')
     f.write("train time," + str(end - start) + '\n')
 f.close()
@@ -115,7 +115,7 @@ dataset["test"] = dataset["test"].remove_columns("label")
 model = all_models[best_model][best_seed]
 model.eval()
 start = time.time()
-with open("/cs/labs/daphna/uri1234/ANLP/EX1/"+model_names[best_model]+str(best_seed)+"results/predictions.txt", 'a') as f:
+with open("./"+model_names[best_model]+str(best_seed)+"results/predictions.txt", 'a') as f:
     for sample in dataset["test"]:
         encoded_input = tokenizer(sample['sentence'], return_tensors='pt')
         input_ids = encoded_input['input_ids']
@@ -132,7 +132,7 @@ with open("/cs/labs/daphna/uri1234/ANLP/EX1/"+model_names[best_model]+str(best_s
         predicted_label = list(label_list.keys())[list(label_list.values()).index(predicted_class_idx)]
         f.write(sample['sentence']+"###"+str(predicted_label)+'\n')
 end = time.time()
-with open("/cs/labs/daphna/uri1234/ANLP/EX1/res.txt", 'a') as f:
+with open("./res.txt", 'a') as f:
     f.write("prediction time,"+str(end-start) + '\n')
 f.close()
 
